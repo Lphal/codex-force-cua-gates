@@ -1,0 +1,15 @@
+{
+  "name": "codex-force-cua-gates",
+  "private": true,
+  "description": "Codex++ 拓展包：电脑操控与浏览器门控解锁",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "install:plugin": "node tools/install.mjs --link",
+    "install:plugin:copy": "node tools/install.mjs",
+    "reload": "node tools/reload.mjs",
+    "probe": "node tools/probe.mjs",
+    "check:gates": "node tools/check-gates.mjs"
+  }
+}

@@ -1,0 +1,253 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* 和 Codex 里同一套变量名，主题跟着管理器（data-theme）。 */
+  :root {
+    color-scheme: light;
+    --codex-plus-text: #18181b;
+    --codex-plus-text-secondary: #71717a;
+    --codex-plus-border: rgba(0, 0, 0, .12);
+    --codex-plus-bg-hover: rgba(0, 0, 0, .05);
+    --codex-plus-success: #0f8a6c;
+    --codex-plus-danger: #dc2626;
+    --codex-plus-warning: #b45309;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --codex-plus-text: #e4e4e7;
+    --codex-plus-text-secondary: #a1a1aa;
+    --codex-plus-border: rgba(255, 255, 255, .12);
+    --codex-plus-bg-hover: rgba(255, 255, 255, .06);
+    --codex-plus-success: #34d399;
+    --codex-plus-danger: #f87171;
+    --codex-plus-warning: #fbbf24;
+  }
+  html, body { margin: 0; background: transparent; }
+  body {
+    padding: 12px 14px 14px;
+    color: var(--codex-plus-text);
+    font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .intro { color: var(--codex-plus-text-secondary); font-size: 12px; margin-bottom: 6px; }
+  .group { margin: 0; }
+  .group + .group { border-top: 1px solid var(--codex-plus-border); }
+  summary {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 9px 0; cursor: pointer; list-style-position: inside;
+  }
+  summary::-webkit-details-marker { color: var(--codex-plus-text-secondary); }
+  .group-title { font-weight: 600; }
+  .group-note { color: var(--codex-plus-text-secondary); font-size: 11px; }
+  .gate-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0 8px 4px; }
+  .gate-row + .gate-row { border-top: 1px solid var(--codex-plus-border); }
+  .gate-row input[type="checkbox"] { margin: 3px 0 0; accent-color: var(--codex-plus-success); }
+  .gate-row label { cursor: pointer; flex: 1; }
+  .gate-title { font-weight: 500; }
+  .gate-desc { color: var(--codex-plus-text-secondary); font-size: 12px; margin-top: 1px; }
+  .tag {
+    padding: 0 6px; margin-left: 6px; border-radius: 999px;
+    color: var(--codex-plus-danger);
+    background: color-mix(in srgb, var(--codex-plus-danger) 12%, transparent);
+    font-size: 11px; font-weight: 500;
+  }
+  .tag.reverse {
+    color: var(--codex-plus-warning);
+    background: color-mix(in srgb, var(--codex-plus-warning) 14%, transparent);
+  }
+  .footer { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--codex-plus-border); }
+  button {
+    padding: 3px 10px; border-radius: 6px; cursor: pointer;
+    color: var(--codex-plus-text);
+    background: transparent; border: 1px solid var(--codex-plus-border);
+    font: inherit;
+  }
+  button:hover { background: var(--codex-plus-bg-hover); }
+  .status { color: var(--codex-plus-text-secondary); font-size: 12px; }
+  .status.saved { color: var(--codex-plus-success); }
+  .status.error { color: var(--codex-plus-danger); }
+  .hint { color: var(--codex-plus-text-secondary); font-size: 12px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(async () => {
+  const root = document.getElementById("root");
+  const manager = window.codexPlusManager;
+
+  // 2026-11 版 app.asar 逆向结论；应用更新后用仓库里的 probe / asar 工具重新确认。
+  // reverse: true 表示 gate 为 true 时关闭对应功能（反向门控）。
+  const CUA_GATES = [
+    {
+      hash: "1506311413",
+      title: "电脑操控",
+      desc: "设置里的 Computer use：截屏、鼠标与键盘控制。",
+    },
+    {
+      hash: "410065390",
+      title: "外部浏览器",
+      desc: "通过浏览器扩展把操作交给外部 Chrome / Edge。",
+    },
+    {
+      hash: "410262010",
+      title: "内置浏览器 Agent",
+      desc: "应用内浏览器面板的 Agent 能力。",
+    },
+  ];
+  const OTHER_GATES = [
+    {
+      hash: "1079089693",
+      title: "会话时间线历史",
+      desc: "threadTimelineHistory，与电脑操控无关。",
+    },
+    {
+      hash: "1138821566",
+      title: "应用 / 连接器列表预取",
+      desc: "开启后跳过预取。",
+      reverse: true,
+    },
+    {
+      hash: "1342944728",
+      title: "购物商品卡片 v2",
+      desc: "商品卡片的 v2 图片展示。",
+    },
+    {
+      hash: "1613860123",
+      title: "广告控制 / 免费版关闭广告",
+      desc: "免费版广告关闭相关设置。",
+    },
+    {
+      hash: "1625797156",
+      title: "Work 模式引导",
+      desc: "Work 模式推广 / reonboarding。",
+    },
+    {
+      hash: "2200939124",
+      title: "Codex Pages",
+      desc: "Pages 功能可用性。",
+    },
+    {
+      hash: "224248639",
+      title: "粘贴文件 / 文件库",
+      desc: "粘贴文件与文件库入口。",
+    },
+    {
+      hash: "2608972388",
+      title: "DIL 诊断",
+      desc: "模型生成 UI 的诊断与遥测。",
+    },
+    {
+      hash: "2830112640",
+      title: "应用入口 / UTM 归因",
+      desc: "开启后跳过入口与 UTM 归因上报。",
+      reverse: true,
+    },
+    {
+      hash: "2911503418",
+      title: "插件创作（作者功能）",
+      desc: "开启即禁用插件创作。",
+      reverse: true,
+    },
+    {
+      hash: "3097567806",
+      title: "流式首包等待 / 重试",
+      desc: "等待首个响应时的流式重试。",
+    },
+    {
+      hash: "3142691021",
+      title: "TPP 新手引导个性化",
+      desc: "新手引导里的「个性化下一步」。",
+    },
+    {
+      hash: "4101895715",
+      title: "广告图片卡片展示",
+      desc: "开启即关闭图片卡片展示类型。",
+      reverse: true,
+    },
+    {
+      hash: "4185326558",
+      title: "助手消息修订",
+      desc: "Assistant revisions。",
+    },
+    {
+      hash: "665873859",
+      title: "广告控制设置",
+      desc: "Ads controls 设置项。",
+    },
+  ];
+  const DEFAULT_HASHES = CUA_GATES.map((gate) => gate.hash);
+  const KNOWN = new Set([...CUA_GATES, ...OTHER_GATES].map((gate) => gate.hash));
+  const parse = (text) => new Set(String(text ?? "").split(/[\s,]+/).filter(Boolean));
+
+  const gateRow = (gate) => `
+    <div class="gate-row">
+      <input type="checkbox" id="gate-${gate.hash}" data-hash="${gate.hash}">
+      <label for="gate-${gate.hash}">
+        <div class="gate-title">${gate.title}（${gate.hash}）${gate.reverse ? '<span class="tag reverse">反向</span>' : ""}</div>
+        <div class="gate-desc">${gate.desc}</div>
+      </label>
+    </div>`;
+
+  const group = (title, note, gates, open) => `
+    <details class="group"${open ? " open" : ""}>
+      <summary><span class="group-title">${title}</span><span class="group-note">${note}</span></summary>
+      ${gates.map(gateRow).join("")}
+    </details>`;
+
+  try {
+    const config = await manager.config.get();
+    const enabled = parse(config.enabledGates);
+    // 配置里已有的未知哈希也渲染成勾选项，取消勾选即移除。
+    const unknown = [...enabled]
+      .filter((hash) => !KNOWN.has(hash))
+      .map((hash) => ({ hash, title: "未识别门控", desc: "配置里已有的未知哈希，取消勾选即移除。" }));
+
+    root.innerHTML = `
+      <div class="intro">勾选即保存并热更新；带「反向」标记的项开启会关闭对应功能。</div>
+      ${group("电脑操控与浏览器", "默认开启", CUA_GATES, true)}
+      ${group("其它功能", "与电脑操控无关，默认关闭", OTHER_GATES, true)}
+      ${unknown.length ? group("未识别", "来自旧配置", unknown, true) : ""}
+      <div class="footer">
+        <button type="button" id="reset">恢复默认</button>
+        <span class="status" id="status"></span>
+      </div>`;
+
+    const inputs = [...root.querySelectorAll("input[data-hash]")];
+    const status = root.querySelector("#status");
+    const reset = root.querySelector("#reset");
+    for (const input of inputs) input.checked = enabled.has(input.dataset.hash);
+
+    let timer = 0;
+    const setStatus = (text, kind) => {
+      status.textContent = text;
+      status.className = `status${kind ? ` ${kind}` : ""}`;
+    };
+    const persist = () => {
+      clearTimeout(timer);
+      timer = setTimeout(async () => {
+        const picked = inputs.filter((input) => input.checked).map((input) => input.dataset.hash).join(" ");
+        try {
+          await manager.config.set({ enabledGates: picked });
+          setStatus("已保存", "saved");
+          setTimeout(() => setStatus("", ""), 1200);
+        } catch (error) {
+          setStatus(`保存失败：${error?.message || error}`, "error");
+        }
+      }, 350);
+    };
+
+    for (const input of inputs) input.addEventListener("change", persist);
+    reset.addEventListener("click", () => {
+      const defaults = new Set(DEFAULT_HASHES);
+      for (const input of inputs) input.checked = defaults.has(input.dataset.hash);
+      persist();
+    });
+  } catch (error) {
+    root.textContent = `设置页加载失败：${error?.message || error}`;
+  }
+})();
+</script>
+</body>
+</html>
