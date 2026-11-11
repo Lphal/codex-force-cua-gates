@@ -1,0 +1,25 @@
+{
+  "id": "force-cua-gates",
+  "name": "电脑操控与浏览器门控解锁",
+  "version": "2.2.3",
+  "description": "按勾选项强制电脑操控/浏览器相关的 Statsig 门控读取结果，绕过地区与组织限制的客户端判定。Codex++ 管理器和 ChatGPT「拓展」详情页使用同一份勾选界面。",
+  "icon": "plugin/assets/icon.svg",
+  "engines": {
+    "codexpp": 1
+  },
+  "renderer": [
+    "plugin/settings-panel.js",
+    "plugin/main.js"
+  ],
+  "settings": {
+    "page": "plugin/settings.html"
+  },
+  "config": {
+    "enabledGates": {
+      "type": "text",
+      "title": "启用的门控",
+      "description": "勾选的 gate 哈希，空格分隔。设置页提供完整清单：默认开启电脑操控、外部浏览器、内置浏览器 Agent 三项。",
+      "default": "1506311413 410065390 410262010"
+    }
+  }
+}
