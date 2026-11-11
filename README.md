@@ -31,6 +31,16 @@ node tools/probe.mjs            # 检查加载状态与勾选门控的读取结�
 
 两边是同一份门控清单（中文（哈希）逐项勾选）。改了哈希或名称后跑 `node tools/check-gates.mjs`（或 `npm run check:gates`）确认两份界面一致。
 
+### 发布到 GitHub
+
+管理器的「发布到 GitHub」用 `symlink_metadata` 检查包目录，软链会被判成「不是用户拓展包」。发布前切换成复制安装：
+
+```bash
+node tools/install.mjs          # 复制 plugin/ 到用户脚本目录（真实目录）
+# 管理器里发布
+node tools/install.mjs --link   # 发布完恢复软链开发模式
+```
+
 ### probe 输出怎么读
 
 - `脚本: loaded v2.2.2 …` —— Codex++ 扫描到并执行了拓展包

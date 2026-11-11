@@ -92,4 +92,7 @@ if (mode === "link" && (await alreadyLinked())) {
 await setEnabled(true);
 
 console.log(`启用项: ${scriptKey} = true（${configFile}）`);
+if (mode === "link") {
+  console.log("提示：软链安装不能用于管理器的「发布到 GitHub」；发布前先运行 node tools/install.mjs（复制安装）。");
+}
 console.log("下一步: node tools/reload.mjs && node tools/probe.mjs");
